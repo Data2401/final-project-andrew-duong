@@ -1,0 +1,26 @@
+---
+title: "FinalReport"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+  League of Legends! One of the most popular online games across the globe and there's is an exciting e-sports scene. We are going to be taking a dive into the golden era of 2015-2018( Only just the beginning of 2018) of team's dominance throughout tournament history. This has been an unknown world for a while but the exposure league has been getting recently due to their outside successes out the game such as shows, packing out arenas, and their cinematic on YouTube bring a controversial topic of is it an actual sport. It's also crazy how players are getting paid million upon millions to play a virtual game online but we are here to unveil the best teams in league of legends.
+
+I loaded in all my data set, which had all the variables I need to conduct my research on which team was the best at league during those years. Such as the objectives of the game, which help give map control and gold to teams. The objectives of the games are towers, inhibitors, structures, barons, and dragons. The control of the game is kind of the macro, which means the overall influence of the game depends on the objectives being played because I am suspecting a correlation of gold difference with the structures or objectives. Because destroying these structures and objectives do grant you the most kills compared to kills. While the micro variables are the kills, because even though you can have a lot of kills, you may not have total complete control of the game because of the champions you could be facing. Like for example, various team comps are either strong when they all fight together or very strong 1 versus 1 champions.  
+
+So now we get into the variables we will be looking at. Such as the structures, objectives, bans, and gold to see which has the most impact to certain teams reigns in the league. All of the variables will come in later after I used dplyr to understand how many teams have good records, in what region, any similarities or differences between other teams. So we can see that EULCS, NALCS, and the LCK have the most games played so I will be examining those leagues because they would be the most accurate due to the sample size of games.
+
+Next we can move onto the dot graph of the majority of games compared to all the other leagues, and as apparent as it is, the EULCS,NALCS, and LCK have the biggest dots. We can see the game lengths of other leagues and surprisingly we can see that the LCK has more shorter game lengths compared to other leagues, so we can go ahead and make the assumption they are very good at closing games out.
+
+The blue vs red side has actually been a phenomenon in the league community even though both sides are exactly the same but just mirrord on the other side. We can see that blue side has won 500 more games than red side during this time which is actually quite surprising since the map is fairly equal except the objectives of the dragons and baron.
+
+Now here we are going into the ban phase, so before every game, teams get to decide to ban champions to prevent from other players playing on it. So they can strategist and ban champions that they know enemy players are good on, so they are forced onto other champions. From this variable I saw that the bans raise from 3 champions to 5. And I just saw coincidentally, the year that they raise it to 5 was in the year 2017. That was the year SKT had lost the world cup, which was actually at this time was Faker and he was more forced on champions he just wasn't quite as proficient as his other champions. Which 2 years before when there was only 3 bans, SKT was able to win back to back champions. Even though this ban phase is only a small part of the game length wise, it has very large pivotal movements that influences a game whether they will win. 
+
+The Gold Difference graphs can actually changed to different game ID's so we can examine the gold difference. The thing about this variable though is more of a dependent variable because this gold comes from other variables, which are more independent. Such as the objectives, structures, and kills which I can take into correlation with teams wins and see which variable is the most correlated or impact. But I can conclude from the graphs are when the games or when teams will take off to win because of when they got certain variables in the game.
+
+Now I will focus onto this one team in EULCS named fnatic because during this summer split, they were able to have a perfect record during this season which is crazy because no team has done this since last 2011, which was SKT. So then I have the variables and all of fnatics wins during the season and piped it into a heatmap, to show different correlations. One thing I could have done better was be able to label each square with a coefficient on it.
