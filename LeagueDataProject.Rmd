@@ -1,0 +1,228 @@
+---
+title: "LeagueDataProject"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse, warn.conflicts = F)#Organize my data 
+library(ggplot2, warn.conflicts = F) # To plot, make graphs 
+library(gplots) #To use different types of maps, like a heat map
+library(data.table) #Make the spreadsheets of some data sheets to convert to matrices/data tables to be able to map data 
+
+
+
+```
+
+
+
+## Introduction
+
+- League of Legends! One of the most popular online games across the globe and there's is an exciting e-sports scene. We are going to be taking a dive into the golden era of 2015-2018( Only just the beginning of 2018) of team's dominance throughout tournament history. This has been an unknown world for a while but the exposure league has been getting recently due to their outside successes out the game such as shows, packing out arenas, and their cinematic on youtube bring a controversial topic of is it an actual sport. It's also crazy how players are getting paid million upon millions to play a virtual game online but we are here to unveil the best teams in league of legends.
+
+## Loading Datasets in, there are multiple datasets because there are so many columns and eaiser to be organized.
+
+```{r, message=FALSE, warning= FALSE, show_col_types = FALSE }
+league <- read.csv("LeagueofLegends.csv") #Information about the ingame variables
+match <- read.csv("matchinfo.csv") #Information about the players, and teams
+kills <- read_csv("kills.csv") # Information on what players killed who
+gold <- read_csv("gold.csv") #Ingame currency, from kills, towers,objectives, and              minions
+bans <- read_csv("bans.csv")
+#Gold is currency you receive in the game, which helps you to buy items in the shop to make your champion stronger to go back there and put up a fight. You can get gold from killing enemies, camps, objectives, and minions.
+
+#Structures are part of the game and you want to take as many turrets, inhibitors, and finally the nexus down to win the game
+
+```
+## Metadata
+So the r and b are just separated to differentiate what team has what, or what happened on this side of the map.
+1. rKills
+2. bKills
+3. rGold
+4. bGold
+5. Objectives
+    +bDragons
+    +rBaron
+    +bBaron
+    +Rtowers
+    +Btowers
+
+![Map Of Summoners Rift](SRMap.jpg)
+![Minions!](Minions.jpg)
+
+
+## Overview of All Games 
+Now here I want to see how many games each league has played all years through 2015-2017 (Early 2018)
+```{r}
+league %>% select(League, Year, Season, Type) %>%
+  group_by(League) %>% count()
+```
+## Now here is a plot of the # of Games Per Season, broken by League and Year
+```{r, warning= FALSE}
+g2<-league %>% 
+  group_by(League,Year) %>% summarise(number=n()) %>% 
+  ggplot(aes(x=reorder(League,-number),y=number,fill=League)) + 
+  geom_histogram(stat='identity') + 
+  theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1),legend.text=element_text(size=8),legend.key.size = unit(.3, "cm"))  + xlab('') + ylab('number of games')
+g2
+```
+ 
+### Majority of Games Played
+After looking at the bar graph above, I want to consider taking out certain smaller leagues out because the sample size of games compared to EULCS, NALCS, LCK so the data is more accurate due to the sample size.
+```{r,warning= FALSE}
+league%>% 
+  group_by(League,Season,Year) %>% summarise(number=n()) %>% 
+  ggplot(aes(x=Year,y=League, size=number,color=Season)) + 
+  geom_point() + facet_wrap(~Season) + 
+  theme(legend.position="top",legend.text=element_text(size=8),legend.key.size = unit(.4, "cm"))
+```
+
+#### Game Length By Different Leagues
+I can compare the length of games by leagues, from this data I can start to figure out what league is the most efficient at closing out games.
+```{r}
+league %>% 
+  select(League, Season, gamelength) %>% 
+  group_by(League) %>% 
+  ggplot(aes(x=gamelength)) + 
+  geom_density(aes(fill=League)) + 
+  facet_wrap(~League,ncol=4) + 
+  theme(legend.position='top') + ylab('')
+```
+
+
+## Wins of Blue Side vs Red
+Let's compare to see if maybe one side has more landscape advantages. Now we can that blue side has more wins but why?
+```{r}
+league %>%
+  filter(bResult == "1") %>%
+  count()
+league %>%
+  filter(rResult == "1") %>%
+  count()
+```
+##### What team has the best record?
+We can see here from count that the Blue side has won more than the red side but lets figure out what teams perform the best on either side
+```{r}
+league %>%
+group_by(blueTeamTag,bResult) %>% count()%>% arrange(-n) %>% filter(bResult == "1")
+
+```
+Get both sides blue and red to see what team has the best record.
+```{r}
+league %>%
+group_by(redTeamTag,rResult) %>% count()%>% arrange(-n) %>%  filter(rResult == "1")
+```
+The team SKT is a very successful team from Korea and are definitely considered one of the best teams in the world due to their repeated appearances in the World Cup Championships and 3 titles under their belt, which is the most out of any team.
+
+### Team With the worst record?
+```{r}
+league %>%
+group_by(redTeamTag,rResult) %>% count()%>% arrange(-n) %>%  filter(rResult == "0")
+
+league %>%
+group_by(blueTeamTag,bResult) %>% count()%>% arrange(-n) %>%filter(bResult == "0")
+```
+I also realized technically that the team has the worst record isn't as accurate because of the sample size not being the same since they didn't play the same amount of games. Yet we can still see that SKT is well above everybody and they've played the most games and not another team from that league can keep up with them.
+
+
+### Ban Phase
+So before every game starts before a professional competitive match, a ban phase occurs. Where a team can ban a champion before they can pick them because they know that a player on the opposing team is very good with. So that's where pro players must have a large champion pool so they can be good enough to help their team win.
+```{r}
+bans %>% group_by(ban_1)%>%count()%>%arrange(-n) %>% filter(n > 500)%>% ggplot(aes(x = reorder(ban_1,-n), y = n, fill = n))+geom_bar(stat = "identity") + theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1))
+bans %>% group_by(ban_2)%>%count()%>%arrange(-n) %>% filter(n > 400)%>% ggplot(aes(x = reorder(ban_2,-n), y = n, fill = n))+geom_bar(stat = "identity") + theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1))
+bans %>% group_by(ban_3)%>%count()%>%arrange(-n) %>% filter(n > 150)%>% ggplot(aes(x = reorder(ban_3,-n), y = n, fill = n))+geom_bar(stat = "identity") + theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1))
+```
+
+### Patch 7.11
+Around 2017ish, Riot decided to give each team 2 more bans which in total created 5. Which allowed for more strategic ban phases and more flexibility as where both teams are forced to choose 3 people before banning the last two champions. This decision allowed for more fair chances at eliminating champions that were not chosen yet due to their designated role.
+```{r}
+bans <- na.omit(bans)
+bans %>% select(ban_4) %>% group_by(ban_4) %>% count() %>% arrange(-n) %>%filter(n >150) %>% ggplot(aes(x = reorder(ban_4,-n), y = n, fill = ban_4))+geom_bar(stat = "identity") + theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1))
+```
+
+### Ban 5
+We start to realize and notice that these 2 more bans have really ruled out midlaners.
+```{r}
+bans %>% select(ban_5) %>% group_by(ban_5) %>% count() %>% arrange(-n) %>%filter(n >150) %>% ggplot(aes(x = reorder(ban_5,-n), y = n, fill = ban_5))+geom_bar(stat = "identity") + theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1))
+```
+
+## Downfall
+In 2015 and 2016, SKT1 has been the only team in all of tournament history to ever achieve a back to back championship world title. Unfortunately in 2017, their run had been stopped short by Samsung White due to them banning a lot of faker's champion pool.
+```{r}
+match %>% select(Year,blueMiddle,blueMiddleChamp, Type, bResult,League) %>% filter(Year== "2017",blueMiddle == "Faker", Type == "International",League == "WC")
+match %>% select(Year,redMiddle,redMiddleChamp, Type, rResult,League) %>% filter(Year== "2017",redMiddle == "Faker", Type == "International", League == "WC")
+```
+### Gold Differences Graphs
+At the end of every match, there is actually a built in graph that I was trying to model after which shows the gold difference between both teams, and you can see when the game has turned around or not/at a certain point you can. At midpoint through the game, predictions can be made on which team is more fit to win the match.
+I had to use a data frame so I can iterate through all of the rows that had gold values throughout each minute of the game. The game_id is just the row number of the gold data set so you can access any game and see the gold graph visualized.
+```{r, warning=FALSE}
+game_id <- 1
+
+game1<-(data.frame(t(gold[game_id,3:83])))
+colnames(game1)<-'gold_diff'
+features<-rownames(game1)
+rownames(game1)<-1:nrow(game1)
+game1$time<-rep(1:nrow(game1))
+game1$Address<-rep(league$Address[1],nrow(game1))
+res<-data.frame(merge(game1, league %>% select(Address,League,Season,Year,blueTeamTag,bResult, redTeamTag,rResult,gamelength),by='Address',y.all=T))
+res$blueTeam<-ifelse(res$bResult==1,"BLUE:W ; RED:L","BLUE:L ; RED:W")
+
+graph<- res %>% na.omit() %>% 
+  ggplot(aes(x=time,y=gold_diff,shape=blueTeam,fill=ifelse(gold_diff>0,"blue","red"))) + 
+  geom_histogram(stat='identity',size=1) + 
+  scale_shape_manual(name='Result',values = c(19)) + 
+  theme(legend.position='none') + ggtitle(res$blueTeam) + 
+  xlab('minutes') + ylab('Gold difference btw Blue and Red team')
+graph
+```
+```{r,warning=FALSE}
+game_id <- 3
+
+game1<-(data.frame(t(gold[game_id,3:83])))
+colnames(game1)<-'gold_diff'
+features<-rownames(game1)
+rownames(game1)<-1:nrow(game1)
+game1$time<-rep(1:nrow(game1))
+game1$Address<-rep(league$Address[1],nrow(game1))
+gold_graph<-data.frame(merge(game1, league %>% select(Address,League,Season,Year,blueTeamTag,bResult, redTeamTag,rResult,gamelength),by='Address',y.all=T))
+gold_graph$blueTeam<-ifelse(gold_graph$bResult==1,"BLUE:L ; RED:W","BLUE:L ; RED:W")
+
+graph<- gold_graph %>% na.omit() %>% 
+  ggplot(aes(x=time,y=gold_diff,shape=blueTeam,fill=ifelse(gold_diff>0,"blue","red"))) + 
+  geom_histogram(stat='identity',size=1) + 
+  scale_shape_manual(name='Result',values = c(19)) + 
+  theme(legend.position='none') + ggtitle(res$blueTeam) + 
+  xlab('minutes') + ylab('Gold difference btw Blue and Red team')
+graph
+```
+
+## Fnatic's Perfect Season
+The reason why I used Fnatic's perfect season was because this is the only time in LCS did they win, but they had an abundant amount of games and as well as I can see the different objectives that helped win their games, and see which the most impactful one. As well as to see the correlation using a heatmap.
+```{r, warning=FALSE}
+matrix_league<-league %>% filter(blueTeamTag == "FNC",Year == "2015",bResult == "1"|rResult == "1",Season == "Summer") %>% select(bTowers,rTowers,bDragons,rDragons,rTowers,bTowers,rKills,bKills,golddiff)
+x <- data.matrix(matrix_league)
+heatmap.2(x,main = "Win Conditions",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
+colorpalet <- colorRampPalette(c("cyan","deeppink3"))
+heatmap.2(x,col = colorpalet(100),main = "FNC Perfect Season 2016 Summer Split",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
+
+```
+
+## SKT's Championship Game
+```{r,warning=FALSE}
+matrix_league<-league %>% filter(blueTeamTag == "SKT",Year == "2015",bResult == "1"|rResult == "1",League == "WC") %>% select(bTowers,rTowers,bDragons,rDragons,rTowers,bTowers,rKills,bKills)
+x <- data.matrix(matrix_league)
+heatmap.2(x,main = "Win Conditions",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
+colorpalet <- colorRampPalette(c("cyan","deeppink3"))
+heatmap.2(x,col = colorpalet(100),main = "SKT1 World Championship Games 2015",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
+
+matrix_league<-league %>% filter(blueTeamTag == "SKT",Year == "2016",bResult == "1"|rResult == "1",League == "WC") %>% select(bTowers,rTowers,bDragons,rDragons,rTowers,bTowers,rKills,bKills)
+x <- data.matrix(matrix_league)
+heatmap.2(x,main = "Win Conditions",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
+colorpalet <- colorRampPalette(c("cyan","deeppink3"))
+heatmap.2(x,col = colorpalet(100),main = "SKT1 World Championship Games 2016",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
+```
+
+
+
+
