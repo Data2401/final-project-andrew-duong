@@ -1,8 +1,7 @@
 ---
 title: "LeagueDataProject"
 output:
-  slidy_presentation: default
-  ioslides_presentation: default
+  pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +19,7 @@ library(data.table) #Make the spreadsheets of some data sheets to convert to mat
 
 ## Introduction
 
-- League of Legends! One of the most popular online games across the globe and there's is an exciting e-sports scene. We are going to be taking a dive into the golden era of 2015-2018( Only just the beginning of 2018) of team's dominance throughout tournament history. This has been an unknown world for a while but the exposure league has been getting recently due to their outside successes out the game such as shows, packing out arenas, and their cinematic on youtube bring a controversial topic of is it an actual sport. It's also crazy how players are getting paid million upon millions to play a virtual game online but we are here to unveil the best teams in league of legends.
+- League of Legends! One of the most popular online games across the globe and there's is an exciting e-sports scene. We are going to be taking a dive into the golden era of 2015-2018( Only just the beginning of 2018) of team's dominance throughout tournament history. This has been an unknown world for a while but the exposure league has been getting recently due to their outside successes out the game such as shows, packing out arenas, and their cinematic on YouTube bring a controversial topic of is it an actual sport. It's also crazy how players are getting paid million upon millions to play a virtual game online but we are here to unveil the best teams in league of legends.
 
 ## Loading Datasets in, there are multiple datasets because there are so many columns and eaiser to be organized.
 
@@ -36,6 +35,8 @@ bans <- read_csv("bans.csv")
 
 ```
 ## Metadata
+I loaded in all my data set, which had all the variables I need to conduct my research on which team was the best at league during those years. Such as the objectives of the game, which help give map control and gold to teams. The objectives of the games are towers, inhibitors, structures, barons, and dragons. The control of the game is kind of the macro, which means the overall influence of the game depends on the objectives being played because I am suspecting a correlation of gold difference with the structures or objectives. Because destroying these structures and objectives do grant you the most kills compared to kills. While the micro variables are the kills, because even though you can have a lot of kills, you may not have total complete control of the game because of the champions you could be facing. Like for example, various team comps are either strong when they all fight together or very strong 1 versus 1 champions.
+
 So the r and b are just separated to differentiate what team has what, or what happened on this side of the map.
 1. rKills
 2. bKills
@@ -59,40 +60,55 @@ league %>% select(League, Year, Season, Type) %>%
   group_by(League) %>% count()
 ```
 ## Now here is a plot of the # of Games Per Season, broken by League and Year
+The code chunks with the comment of the kaggle links are graphs I did take because I saw how relevant it was and I could of made it myself.
+Here I given credit to the owner and cited their 3 plots and graphs.
+
+https://www.kaggle.com/code/jonathanbouchet/lol-games-4-years-of-esport/report
+
+So now we get into the variables we will be looking at. Such as the structures, objectives, bans, and gold to see which has the most impact to certain teams reigns in the league. All of the variables will come in later after I used dplyr to understand how many teams have good records, in what region, any similarities or differences between other teams. So we can see that EULCS, NALCS, and the LCK have the most games played so I will be examining those leagues because they would be the most accurate due to the sample size of games.
+
 ```{r, warning= FALSE}
 g2<-league %>% 
   group_by(League,Year) %>% summarise(number=n()) %>% 
   ggplot(aes(x=reorder(League,-number),y=number,fill=League)) + 
-  geom_histogram(stat='identity') + 
-  theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1),legend.text=element_text(size=8),legend.key.size = unit(.3, "cm"))  + xlab('') + ylab('number of games')
+  geom_histogram(stat='identity')
 g2
+
+#https://www.kaggle.com/code/jonathanbouchet/lol-games-4-years-of-esport/report
 ```
  
 ### Majority of Games Played
 After looking at the bar graph above, I want to consider taking out certain smaller leagues out because the sample size of games compared to EULCS, NALCS, LCK so the data is more accurate due to the sample size.
+
+Next we can move onto the dot graph of the majority of games compared to all the other leagues, and as apparent as it is, the EULCS,NALCS, and LCK have the biggest dots. We can see the game lengths of other leagues and surprisingly we can see that the LCK has more shorter game lengths compared to other leagues, so we can go ahead and make the assumption they are very good at closing games out.
+
 ```{r,warning= FALSE}
 league%>% 
   group_by(League,Season,Year) %>% summarise(number=n()) %>% 
   ggplot(aes(x=Year,y=League, size=number,color=Season)) + 
-  geom_point() + facet_wrap(~Season) + 
-  theme(legend.position="top",legend.text=element_text(size=8),legend.key.size = unit(.4, "cm"))
+  geom_point() + facet_wrap(~Season)
+#https://www.kaggle.com/code/jonathanbouchet/lol-games-4-years-of-esport/report
 ```
 
 #### Game Length By Different Leagues
-I can compare the length of games by leagues, from this data I can start to figure out what league is the most efficient at closing out games.
+From this data I can start to figure out what league is the most efficient at closing out games.
 ```{r}
-league %>% 
+league %>%
   select(League, Season, gamelength) %>% 
   group_by(League) %>% 
   ggplot(aes(x=gamelength)) + 
   geom_density(aes(fill=League)) + 
   facet_wrap(~League,ncol=4) + 
   theme(legend.position='top') + ylab('')
+#https://www.kaggle.com/code/jonathanbouchet/lol-games-4-years-of-esport/report
 ```
 
 
 ## Wins of Blue Side vs Red
 Let's compare to see if maybe one side has more landscape advantages. Now we can that blue side has more wins but why?
+
+The blue vs red side has actually been a phenomenon in the league community even though both sides are exactly the same but just mirrored on the other side. We can see that blue side has won 500 more games than red side during this time which is actually quite surprising since the map is fairly equal except the objectives of the dragons and baron.
+
 ```{r}
 league %>%
   filter(bResult == "1") %>%
@@ -135,7 +151,11 @@ bans %>% group_by(ban_3)%>%count()%>%arrange(-n) %>% filter(n > 150)%>% ggplot(a
 ```
 
 ### Patch 7.11
-Around 2017ish, Riot decided to give each team 2 more bans which in total created 5. Which allowed for more strategic ban phases and more flexibility as where both teams are forced to choose 3 people before banning the last two champions. This decision allowed for more fair chances at eliminating champions that were not chosen yet due to their designated role.
+Around 2017ish, Riot decided to give each team 2 more bans which in total created 5. 
+
+Which allowed for more strategic ban phases and more flexibility as where both teams are forced to choose 3 people before banning the last two champions. 
+
+This decision allowed for more fair chances at eliminating champions that were not chosen yet due to their role.
 ```{r}
 bans <- na.omit(bans)
 bans %>% select(ban_4) %>% group_by(ban_4) %>% count() %>% arrange(-n) %>%filter(n >150) %>% ggplot(aes(x = reorder(ban_4,-n), y = n, fill = ban_4))+geom_bar(stat = "identity") + theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1))
@@ -143,66 +163,30 @@ bans %>% select(ban_4) %>% group_by(ban_4) %>% count() %>% arrange(-n) %>%filter
 
 ### Ban 5
 We start to realize and notice that these 2 more bans have really ruled out midlaners.
+
 ```{r}
 bans %>% select(ban_5) %>% group_by(ban_5) %>% count() %>% arrange(-n) %>%filter(n >150) %>% ggplot(aes(x = reorder(ban_5,-n), y = n, fill = ban_5))+geom_bar(stat = "identity") + theme(legend.position='top',axis.text.x = element_text(angle=45, hjust=1))
 ```
 
 ## Downfall
 In 2015 and 2016, SKT1 has been the only team in all of tournament history to ever achieve a back to back championship world title. Unfortunately in 2017, their run had been stopped short by Samsung White due to them banning a lot of faker's champion pool.
+
+Now here we are going into the ban phase, so before every game, teams get to decide to ban champions to prevent from other players playing on it. So they can strategist and ban champions that they know enemy players are good on, so they are forced onto other champions. From this variable I saw that the bans raise from 3 champions to 5. And I just saw coincidentally, the year that they raise it to 5 was in the year 2017. That was the year SKT had lost the world cup, which was actually at this time was Faker and he was more forced on champions he just wasn't quite as proficient as his other champions. Which 2 years before when there was only 3 bans, SKT was able to win back to back champions. Even though this ban phase is only a small part of the game length wise, it has very large pivotal movements that influences a game whether they will win. 
+
 ```{r}
 match %>% select(Year,blueMiddle,blueMiddleChamp, Type, bResult,League) %>% filter(Year== "2017",blueMiddle == "Faker", Type == "International",League == "WC")
 match %>% select(Year,redMiddle,redMiddleChamp, Type, rResult,League) %>% filter(Year== "2017",redMiddle == "Faker", Type == "International", League == "WC")
 ```
-### Gold Differences Graphs
-At the end of every match, there is actually a built in graph that I was trying to model after which shows the gold difference between both teams, and you can see when the game has turned around or not/at a certain point you can. At midpoint through the game, predictions can be made on which team is more fit to win the match.
-I had to use a data frame so I can iterate through all of the rows that had gold values throughout each minute of the game. The game_id is just the row number of the gold data set so you can access any game and see the gold graph visualized.
-```{r, warning=FALSE}
-game_id <- 1
 
-game1<-(data.frame(t(gold[game_id,3:83])))
-colnames(game1)<-'gold_diff'
-features<-rownames(game1)
-rownames(game1)<-1:nrow(game1)
-game1$time<-rep(1:nrow(game1))
-game1$Address<-rep(league$Address[1],nrow(game1))
-res<-data.frame(merge(game1, league %>% select(Address,League,Season,Year,blueTeamTag,bResult, redTeamTag,rResult,gamelength),by='Address',y.all=T))
-res$blueTeam<-ifelse(res$bResult==1,"BLUE:W ; RED:L","BLUE:L ; RED:W")
-
-graph<- res %>% na.omit() %>% 
-  ggplot(aes(x=time,y=gold_diff,shape=blueTeam,fill=ifelse(gold_diff>0,"blue","red"))) + 
-  geom_histogram(stat='identity',size=1) + 
-  scale_shape_manual(name='Result',values = c(19)) + 
-  theme(legend.position='none') + ggtitle(res$blueTeam) + 
-  xlab('minutes') + ylab('Gold difference btw Blue and Red team')
-graph
-```
-```{r,warning=FALSE}
-game_id <- 3
-
-game1<-(data.frame(t(gold[game_id,3:83])))
-colnames(game1)<-'gold_diff'
-features<-rownames(game1)
-rownames(game1)<-1:nrow(game1)
-game1$time<-rep(1:nrow(game1))
-game1$Address<-rep(league$Address[1],nrow(game1))
-gold_graph<-data.frame(merge(game1, league %>% select(Address,League,Season,Year,blueTeamTag,bResult, redTeamTag,rResult,gamelength),by='Address',y.all=T))
-gold_graph$blueTeam<-ifelse(gold_graph$bResult==1,"BLUE:L ; RED:W","BLUE:L ; RED:W")
-
-graph<- gold_graph %>% na.omit() %>% 
-  ggplot(aes(x=time,y=gold_diff,shape=blueTeam,fill=ifelse(gold_diff>0,"blue","red"))) + 
-  geom_histogram(stat='identity',size=1) + 
-  scale_shape_manual(name='Result',values = c(19)) + 
-  theme(legend.position='none') + ggtitle(res$blueTeam) + 
-  xlab('minutes') + ylab('Gold difference btw Blue and Red team')
-graph
-```
 
 ## Fnatic's Perfect Season
 The reason why I used Fnatic's perfect season was because this is the only time in LCS did they win, but they had an abundant amount of games and as well as I can see the different objectives that helped win their games, and see which the most impactful one. As well as to see the correlation using a heatmap.
+
+Now I will focus onto this one team in EULCS named fnatic because during this summer split, they were able to have a perfect record during this season which is crazy because no team has done this since last 2011, which was SKT. So then I have the variables and all of fnatics wins during the season and piped it into a heatmap, to show different correlations. One thing I could have done better was be able to label each square with a coefficient on it.
+
 ```{r, warning=FALSE}
-matrix_league<-league %>% filter(blueTeamTag == "FNC",Year == "2015",bResult == "1"|rResult == "1",Season == "Summer") %>% select(bTowers,rTowers,bDragons,rDragons,rTowers,bTowers,rKills,bKills,golddiff)
+matrix_league<-league %>% filter(blueTeamTag == "FNC",Year == "2015",bResult == "1"|rResult == "1",Season == "Summer") %>% select(bTowers,rTowers,bDragons,rDragons,rTowers,bTowers,rKills,bKills)
 x <- data.matrix(matrix_league)
-heatmap.2(x,main = "Win Conditions",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
 colorpalet <- colorRampPalette(c("cyan","deeppink3"))
 heatmap.2(x,col = colorpalet(100),main = "FNC Perfect Season 2016 Summer Split",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
 
@@ -212,16 +196,25 @@ heatmap.2(x,col = colorpalet(100),main = "FNC Perfect Season 2016 Summer Split",
 ```{r,warning=FALSE}
 matrix_league<-league %>% filter(blueTeamTag == "SKT",Year == "2015",bResult == "1"|rResult == "1",League == "WC") %>% select(bTowers,rTowers,bDragons,rDragons,rTowers,bTowers,rKills,bKills)
 x <- data.matrix(matrix_league)
-heatmap.2(x,main = "Win Conditions",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
 colorpalet <- colorRampPalette(c("cyan","deeppink3"))
 heatmap.2(x,col = colorpalet(100),main = "SKT1 World Championship Games 2015",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
 
 matrix_league<-league %>% filter(blueTeamTag == "SKT",Year == "2016",bResult == "1"|rResult == "1",League == "WC") %>% select(bTowers,rTowers,bDragons,rDragons,rTowers,bTowers,rKills,bKills)
 x <- data.matrix(matrix_league)
-heatmap.2(x,main = "Win Conditions",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
 colorpalet <- colorRampPalette(c("cyan","deeppink3"))
 heatmap.2(x,col = colorpalet(100),main = "SKT1 World Championship Games 2016",trace = 'none',margins = c(10,12),Rowv = FALSE, Colv = FALSE)
 ```
+Conclusion 
+
+It was quite interesting to kind of relive this moment of my life when I was super invested into league back in middle school and nerd out a little haha. Yet the question still stands of who is the best league team by far and by data I found it was SKT. I examined multiple different variables that influenced their such structures, objectives or kills.
+
+I didn't take a lot into gold because now looking back at it, gold is more of a dependent variable that would reflect based on the impact of the other independent variables. Such as when you get kills, you are granted 300 coins upon killing another player in the game. Where as when you get structures (towers,inhibitors), you also get 350 gold and 150 gold to your teammates, but you gain map control as well. As well objectives, such as the dragon and baron gives your teammates buffs to make your champion stronger and give gold.  Now I realize this in the game of league, its a game of micro versus macro.
+
+The macro of the game is the overall state of the game. Whether it comes from the structure of the game, how strong your team is, control on the map, rotating in different lanes to make the most out of it, and which team is in control of the game. The micro are more of the little things, such as kills and minion score which don't really make up the macro but definitely helps to influence how the macro will be. Kind of like building blocks or foundation of the team or your champion. I now realize why bans are super important because I used to view them as kind of a micro issue yet they have a voice because teams would have to start forming different teams on the spot to choose champions to synergize well with each other.
+
+The heat maps help portray the image of how far more important the variables of towers, and dragons compared to how much less dense kills contribute to the game. As I examine Fnatic's perfect season in the spring season in the EULCS, which also had a high volume of games. This was very impressive, so why not examine their games and figure out what different variables helped influence. It's apparent that in their 24-0 run, the heat map with the most dense color of pink was on the left side, where the towers and objectives were. As well as I can see in their last couple of games, they completely dominated the bottom seed teams with just kills but for the majority of the games were won by more macro variables. SKT's is also another perfect example to support my insight on macro variables being the most impact and influential to win games despite losing their 3peat champion, they are still arguably the best team of that time.
+
+
 
 
 
